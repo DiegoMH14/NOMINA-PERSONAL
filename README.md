@@ -234,10 +234,14 @@ site** para que tome el `netlify.toml` actualizado.
 - [ ] Recuperación de contraseña por pregunta secreta (self-service)
 - [ ] Exportar movimientos a Excel/PDF
 
+ ## Autor
+
+**Diego Mendoza Hoyos** — Desarrollador y Diseñador
+Tecnico en Programacion de Software, SENA y Estudiante de Ingeniera de Sistemas — Montería, Colombia
+
 ## Licencia
 
-Distribuido bajo licencia MIT. Consulta el archivo `LICENSE` para más
-detalles.
+MIT © Diego Mendoza Hoyos (Nomina Personal) — ver [LICENSE](./LICENSE).
 
 ---
 
