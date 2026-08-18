@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nómina Personal — Crear cuenta</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-shell">
+    <main class="auth-box">
+      <img src="/img/logo-icon.png" alt="Nómina Personal" class="auth-logo-img">
+      <h1 class="auth-title">Crear cuenta</h1>
+      <p class="auth-hint">Regístrate para empezar a llevar tus cuentas.</p>
+      <form id="form-registro" class="auth-form">
+        <label>Usuario
+          <input type="text" id="username" required>
+        </label>
+        <label>Contraseña (mín. 6 caracteres)
+          <input type="password" id="password" required minlength="6">
+        </label>
+        <button type="submit" class="btn btn-primary">Crear cuenta</button>
+      </form>
+      <p id="mensaje" style="color:#e05555; font-size:13px; margin-top:14px;"></p>
+      <p style="margin-top:18px; font-size:13px;"><a href="/login.html" style="color:var(--accent);">Ya tengo cuenta</a></p>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("form-registro").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const mensaje = document.getElementById("mensaje");
+      mensaje.textContent = "";
+
+      const resp = await fetch("/api/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        mensaje.textContent = data.error || "No se pudo crear la cuenta";
+        return;
+      }
+
+      localStorage.setItem("np_token", data.token);
+      localStorage.setItem("np_username", data.username);
+      window.location.href = "/dashboard.html";
+    });
+  </script>
+</body>
+</html>

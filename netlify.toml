@@ -1,0 +1,30 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  # Funciones Node.js (JavaScript) — no se necesita runtime especial,
+  # Netlify usa Node por defecto. esbuild empaqueta cada función y sus
+  # dependencias (jsonwebtoken, bcryptjs) automáticamente.
+  node_bundler = "esbuild"
+  # @libsql/client usa un binario nativo por plataforma (ej. @libsql/linux-x64-gnu)
+  # para hablar con Turso. esbuild no sabe empaquetar binarios nativos, así que
+  # hay que marcarlo como "externo": en vez de intentar meterlo dentro del bundle
+  # de JS, Netlify copia su carpeta node_modules completa tal cual (con el
+  # binario incluido) junto a la función. Sin esto, la función crashea al
+  # arrancar con "Cannot find module '@libsql/linux-x64-gnu'".
+  external_node_modules = ["@libsql/client"]
+
+# Recordatorio diario de pagos pendientes, corre a las 13:00 UTC
+# (= 8:00 am hora de Colombia, UTC-5). Mismo criterio que usaba el
+# banner del dashboard y el job de las 8am del bot original.
+[[scheduled.functions]]
+  path = "recordatorios-diarios"
+  cron = "0 13 * * *"
+
+# Redirige rutas "bonitas" del frontend a las funciones reales,
+# para no tener que llamar directo a /.netlify/functions/algo
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

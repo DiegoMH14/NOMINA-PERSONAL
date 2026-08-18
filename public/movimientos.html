@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Movimientos — Nómina Personal</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item active" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Registro</div>
+          <h1>Movimientos</h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <form id="form-mov" class="filter-row">
+          <select id="tipo" required>
+            <option value="gasto">Gasto</option>
+            <option value="ingreso">Ingreso</option>
+          </select>
+          <input type="number" id="monto" placeholder="Monto" required min="0" step="1">
+          <select id="cuenta_id" required></select>
+          <select id="categoria_id"></select>
+          <input type="date" id="fecha">
+          <input type="text" id="descripcion" placeholder="Descripción (opcional)">
+          <button type="submit" class="btn btn-primary btn-sm">Agregar</button>
+        </form>
+        <p id="mensaje" style="color:var(--danger); font-size:13px; margin:10px 0 0;"></p>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Categoría</th><th>Cuenta</th><th>Descripción</th><th></th></tr></thead>
+            <tbody id="tabla-movimientos"><tr><td colspan="7">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    let cuentas = [];
+    let categorias = [];
+
+    async function cargarSelects() {
+      const [rc, rcat] = await Promise.all([apiFetch("/api/cuentas"), apiFetch("/api/categorias")]);
+      cuentas = rc.cuentas || [];
+      categorias = rcat.categorias || [];
+      document.getElementById("cuenta_id").innerHTML =
+        cuentas.map(c => `<option value="${c.id}">${c.nombre}</option>`).join("");
+      actualizarCategorias();
+    }
+
+    function actualizarCategorias() {
+      const tipo = document.getElementById("tipo").value;
+      const filtradas = categorias.filter(c => c.tipo === tipo);
+      document.getElementById("categoria_id").innerHTML =
+        `<option value="">(sin categoría)</option>` +
+        filtradas.map(c => `<option value="${c.id}">${c.icono} ${c.nombre}</option>`).join("");
+    }
+    document.getElementById("tipo").addEventListener("change", actualizarCategorias);
+
+    async function cargarMovimientos() {
+      const data = await apiFetch("/api/movimientos?limite=100");
+      const tbody = document.getElementById("tabla-movimientos");
+      const movs = data.movimientos || [];
+      if (movs.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>No tienes movimientos todavía.</td></tr>";
+        return;
+      }
+      tbody.innerHTML = movs.map(m => `
+        <tr>
+          <td>${m.fecha}</td>
+          <td>${m.tipo}</td>
+          <td class="${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">${m.tipo === "ingreso" ? "+" : "-"}$${m.monto.toLocaleString("es-CO")}</td>
+          <td>${m.categoria_icono || ""} ${m.categoria_nombre || ""}</td>
+          <td>${m.cuenta_nombre || ""}</td>
+          <td>${m.descripcion || ""}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="eliminarMovimiento(${m.id})">Eliminar</button></td>
+        </tr>
+      `).join("");
+    }
+
+    async function eliminarMovimiento(id) {
+      if (!confirm("¿Eliminar este movimiento?")) return;
+      await apiFetch(`/api/movimientos?id=${id}`, { method: "DELETE" });
+      cargarMovimientos();
+    }
+
+    document.getElementById("form-mov").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const mensaje = document.getElementById("mensaje");
+      mensaje.textContent = "";
+      const body = {
+        tipo: document.getElementById("tipo").value,
+        monto: parseFloat(document.getElementById("monto").value),
+        cuenta_id: parseInt(document.getElementById("cuenta_id").value),
+        categoria_id: document.getElementById("categoria_id").value || null,
+        fecha: document.getElementById("fecha").value || undefined,
+        descripcion: document.getElementById("descripcion").value,
+      };
+      const resp = await fetch("/api/movimientos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("np_token")}` },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      if (!resp.ok && data.duplicado) {
+        if (confirm(data.error + "\n¿Registrarlo de todos modos?")) {
+          await fetch("/api/movimientos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("np_token")}` },
+            body: JSON.stringify({ ...body, forzar: true }),
+          });
+        } else {
+          return;
+        }
+      } else if (!resp.ok) {
+        mensaje.textContent = data.error;
+        return;
+      }
+      e.target.reset();
+      actualizarCategorias();
+      cargarMovimientos();
+    });
+
+    cargarSelects().then(cargarMovimientos);
+  </script>
+</body>
+</html>

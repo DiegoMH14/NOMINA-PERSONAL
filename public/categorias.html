@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Categorías — Nómina Personal</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item active" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Organización</div>
+          <h1>Categorías</h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <form id="form-cat" class="filter-row">
+          <input type="text" id="nombre" placeholder="Nombre" required>
+          <select id="tipo" required>
+            <option value="gasto">Gasto</option>
+            <option value="ingreso">Ingreso</option>
+          </select>
+          <input type="text" id="icono" placeholder="Emoji (opcional)" maxlength="2" style="width:70px">
+          <input type="color" id="color" value="#4FB0FF">
+          <button type="submit" class="btn btn-primary btn-sm">Crear categoría</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Gastos</h2>
+        <div id="lista-gasto" class="tag-list">Cargando...</div>
+      </div>
+
+      <div class="panel">
+        <h2>Ingresos</h2>
+        <div id="lista-ingreso" class="tag-list">Cargando...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    async function cargar() {
+      const data = await apiFetch("/api/categorias");
+      const cats = data.categorias || [];
+      const pintar = (tipo, elId) => {
+        const filtradas = cats.filter(c => c.tipo === tipo);
+        document.getElementById(elId).innerHTML = filtradas.length
+          ? filtradas.map(c => `<span class="tag-chip">${c.icono} ${c.nombre}<button class="tag-remove" onclick="eliminar(${c.id})" title="Eliminar">×</button></span>`).join("")
+          : '<p class="empty-hint">Ninguna todavía.</p>';
+      };
+      pintar("gasto", "lista-gasto");
+      pintar("ingreso", "lista-ingreso");
+    }
+
+    async function eliminar(id) {
+      if (!confirm("¿Eliminar esta categoría?")) return;
+      await apiFetch(`/api/categorias?id=${id}`, { method: "DELETE" });
+      cargar();
+    }
+
+    document.getElementById("form-cat").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await apiFetch("/api/categorias", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: document.getElementById("nombre").value,
+          tipo: document.getElementById("tipo").value,
+          icono: document.getElementById("icono").value || "💸",
+          color: document.getElementById("color").value,
+        }),
+      });
+      e.target.reset();
+      cargar();
+    });
+
+    cargar();
+  </script>
+</body>
+</html>

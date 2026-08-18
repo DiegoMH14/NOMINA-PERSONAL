@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nómina Personal — Dashboard</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item active" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Resumen</div>
+          <h1>Hola, <span class="js-username"></span></h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Tus cuentas</h2>
+        <div class="card-grid" id="lista-cuentas">Cargando...</div>
+        <form id="form-cuenta" class="filter-row" style="margin-top:16px;">
+          <input type="text" id="nombre" placeholder="Nombre (ej. Nequi, Bancolombia, Efectivo)" required>
+          <select id="tipo">
+            <option value="banco">Banco</option>
+            <option value="billetera">Billetera digital (Nequi, Daviplata...)</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="otro" selected>Otro</option>
+          </select>
+          <input type="number" id="saldo_inicial" placeholder="Saldo inicial" min="0" step="1">
+          <button type="submit" class="btn btn-primary btn-sm">Crear cuenta</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    async function cargarCuentas() {
+      const data = await apiFetch("/api/cuentas");
+      const cont = document.getElementById("lista-cuentas");
+      if (!data.cuentas || data.cuentas.length === 0) {
+        cont.innerHTML = '<p class="empty-hint">No tienes cuentas todavía.</p>';
+        return;
+      }
+      cont.innerHTML = data.cuentas.map(c => `
+        <div class="account-card">
+          <div class="account-card-top">
+            <span class="account-tipo">${c.tipo || ''}</span>
+          </div>
+          <div class="account-nombre">${c.nombre}</div>
+          <div class="account-saldo ${c.saldo_actual < 0 ? 'negativo' : 'positivo'}">$${c.saldo_actual.toLocaleString("es-CO")}</div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("form-cuenta").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await apiFetch("/api/cuentas", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: document.getElementById("nombre").value,
+          tipo: document.getElementById("tipo").value,
+          saldo_inicial: parseFloat(document.getElementById("saldo_inicial").value) || 0,
+        }),
+      });
+      e.target.reset();
+      cargarCuentas();
+    });
+
+    cargarCuentas();
+  </script>
+</body>
+</html>

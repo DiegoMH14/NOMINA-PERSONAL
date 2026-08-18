@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pagos pendientes — Nómina Personal</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item active" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Obligaciones</div>
+          <h1>Pagos pendientes</h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <form id="form-pago" class="filter-row">
+          <input type="text" id="nombre" placeholder="Nombre (ej. Arriendo)" required>
+          <input type="number" id="monto" placeholder="Monto" required min="0" step="1">
+          <input type="date" id="fecha_vencimiento" required>
+          <select id="recurrente">
+            <option value="ninguna">No se repite</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+            <option value="anual">Anual</option>
+          </select>
+          <button type="submit" class="btn btn-primary btn-sm">Agregar pago</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div id="lista-pagos" class="pago-list">Cargando...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    let cuentas = [];
+
+    async function cargarCuentas() {
+      const data = await apiFetch("/api/cuentas");
+      cuentas = data.cuentas || [];
+    }
+
+    async function cargar() {
+      const data = await apiFetch("/api/pagos");
+      const cont = document.getElementById("lista-pagos");
+      const items = data.pagos || [];
+      const claseFila = { vencido: "pago-vencido", proximo: "pago-proximo", pendiente: "" };
+      const claseTexto = { vencido: "text-vencido", proximo: "text-proximo", pendiente: "" };
+      const emoji = { vencido: "🔴", proximo: "🟡", pendiente: "⚪" };
+      cont.innerHTML = items.length
+        ? items.map(p => `
+            <div class="pago-row ${claseFila[p.estado] || ''}">
+              <div class="pago-main">
+                <span>${emoji[p.estado] || ''}</span>
+                <div>
+                  <div class="pago-nombre">${p.nombre}</div>
+                  <div class="pago-meta ${claseTexto[p.estado] || ''}">vence ${p.fecha_vencimiento} — ${p.dias_restantes >= 0 ? p.dias_restantes + ' día(s)' : 'vencido hace ' + (-p.dias_restantes) + ' día(s)'}</div>
+                </div>
+              </div>
+              <div class="pago-monto">$${p.monto.toLocaleString("es-CO")}</div>
+              <div class="pago-actions">
+                <button class="btn btn-primary btn-sm" onclick="marcarPagado(${p.id})">Pagado</button>
+                <button class="btn btn-ghost btn-sm" onclick="eliminar(${p.id})">Eliminar</button>
+              </div>
+            </div>`).join("")
+        : '<p class="empty-hint">No tienes pagos pendientes. 🎉</p>';
+    }
+
+    async function marcarPagado(id) {
+      const nombres = cuentas.map(c => `${c.id}: ${c.nombre}`).join("\n");
+      const cuentaId = cuentas.length === 1
+        ? cuentas[0].id
+        : prompt(`¿Desde qué cuenta pagaste? (escribe el número)\n${nombres}`, cuentas[0]?.id);
+      if (!cuentaId) return;
+      await apiFetch(`/api/pagos?accion=marcar_pagado&id=${id}`, {
+        method: "POST",
+        body: JSON.stringify({ cuenta_id: parseInt(cuentaId) }),
+      });
+      cargar();
+    }
+
+    async function eliminar(id) {
+      if (!confirm("¿Eliminar este pago?")) return;
+      await apiFetch(`/api/pagos?id=${id}`, { method: "DELETE" });
+      cargar();
+    }
+
+    document.getElementById("form-pago").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await apiFetch("/api/pagos", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre: document.getElementById("nombre").value,
+          monto: parseFloat(document.getElementById("monto").value),
+          fecha_vencimiento: document.getElementById("fecha_vencimiento").value,
+          recurrente: document.getElementById("recurrente").value,
+        }),
+      });
+      e.target.reset();
+      cargar();
+    });
+
+    cargarCuentas().then(cargar);
+  </script>
+</body>
+</html>

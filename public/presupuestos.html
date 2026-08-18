@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Presupuestos — Nómina Personal</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item active" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Control mensual</div>
+          <h1>Presupuestos del mes</h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <form id="form-pres" class="filter-row">
+          <select id="categoria_id" required></select>
+          <input type="number" id="monto_limite" placeholder="Tope mensual" required min="0" step="1">
+          <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div id="lista-presupuestos">Cargando...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    async function cargarCategorias() {
+      const data = await apiFetch("/api/categorias?tipo=gasto");
+      document.getElementById("categoria_id").innerHTML =
+        (data.categorias || []).map(c => `<option value="${c.id}">${c.icono} ${c.nombre}</option>`).join("");
+    }
+
+    async function cargar() {
+      const data = await apiFetch("/api/presupuestos");
+      const cont = document.getElementById("lista-presupuestos");
+      const items = data.presupuestos || [];
+      cont.innerHTML = items.length
+        ? items.map(p => `
+            <div class="progress-row">
+              <div class="progress-head">
+                <span class="progress-title">${p.categoria_icono} ${p.categoria_nombre}</span>
+                <span class="progress-numbers">$${p.gastado.toLocaleString("es-CO")} / $${p.monto_limite.toLocaleString("es-CO")}</span>
+              </div>
+              <div class="progress-bar"><div class="progress-bar-fill ${p.excedido ? 'excedido' : ''}" style="width:${Math.min(p.porcentaje, 100)}%"></div></div>
+              <div class="progress-sub">
+                <span class="${p.excedido ? 'over' : ''}">${p.porcentaje}%${p.excedido ? ' — excedido' : ''}</span>
+                <button class="btn btn-link btn-link-danger" onclick="eliminar(${p.id})">Eliminar</button>
+              </div>
+            </div>`).join("")
+        : '<p class="empty-hint">No has definido presupuestos todavía.</p>';
+    }
+
+    async function eliminar(id) {
+      if (!confirm("¿Eliminar este presupuesto?")) return;
+      await apiFetch(`/api/presupuestos?id=${id}`, { method: "DELETE" });
+      cargar();
+    }
+
+    document.getElementById("form-pres").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await apiFetch("/api/presupuestos", {
+        method: "POST",
+        body: JSON.stringify({
+          categoria_id: parseInt(document.getElementById("categoria_id").value),
+          monto_limite: parseFloat(document.getElementById("monto_limite").value),
+        }),
+      });
+      e.target.reset();
+      cargar();
+    });
+
+    cargarCategorias().then(cargar);
+  </script>
+</body>
+</html>

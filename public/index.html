@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nómina Personal — controla tus finanzas sin complicarte</title>
+<meta name="description" content="Cuentas, categorías, movimientos y pagos pendientes en un solo lugar, con recordatorios y un bot de Telegram, @NexosasBot, que te ayuda a registrar todo sin abrir el navegador.">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Marca vectorial reutilizable: tarjeta + moneda, sin fondo, nítida a cualquier tamaño -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="logo-mark" viewBox="0 0 64 64">
+      <rect x="3" y="19" width="40" height="29" rx="7" fill="#16283A" stroke="#2C4967" stroke-width="1.5"/>
+      <path d="M3 26h40" stroke="#2C4967" stroke-width="1.5"/>
+      <rect x="10" y="34" width="20" height="3" rx="1.5" fill="#4C6478"/>
+      <rect x="10" y="40" width="12" height="3" rx="1.5" fill="var(--gold)"/>
+      <circle cx="47" cy="21" r="15" fill="url(#logo-coin)" stroke="#B87A1E" stroke-width="1.2"/>
+      <text x="47" y="26.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="700" font-size="15" fill="#5B3B0E">$</text>
+      <linearGradient id="logo-coin" x1="34" y1="8" x2="61" y2="35" gradientUnits="userSpaceOnUse">
+        <stop stop-color="var(--gold-light)"/>
+        <stop offset="1" stop-color="var(--gold)"/>
+      </linearGradient>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="splash" class="splash-screen">
+  <div class="splash-inner">
+    <svg class="splash-logo-svg" viewBox="0 0 64 64"><use href="#logo-mark"/></svg>
+    <div class="splash-wordmark">NÓMINA <span>PERSONAL</span></div>
+    <div class="splash-caption">Cargando tu libro de cuentas…</div>
+    <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  </div>
+</div>
+
+<div class="landing">
+
+  <nav class="landing-nav">
+    <div class="brand">
+      <svg class="brand-mark-svg" viewBox="0 0 64 64"><use href="#logo-mark"/></svg>
+      <div>
+        <div class="brand-name">Nómina Personal</div>
+        <div class="brand-sub">gestor personal</div>
+      </div>
+    </div>
+    <div class="landing-nav-actions">
+      <span class="np-logged-out">
+        <a class="btn btn-ghost" href="/login.html">Iniciar sesión</a>
+        <a class="btn btn-primary" href="/registro.html">Crear cuenta gratis</a>
+      </span><span class="np-logged-in" style="display:none">
+        <a class="btn btn-ghost" href="/dashboard.html">Ir al dashboard</a>
+      </span>
+    </div>
+  </nav>
+
+  <div class="landing-hero-wrap">
+    <header class="landing-hero">
+      <div>
+        <div class="landing-eyebrow">Finanzas personales, sin hoja de cálculo</div>
+        <h1>Sabe en qué se te va la plata, antes de que se te vaya.</h1>
+        <p class="lead">
+          Registra tus cuentas, gastos e ingresos, programa tus pagos pendientes
+          y recibe recordatorios — en la web y directo a tu Telegram — para que
+          nunca más se te pase una fecha de pago.
+        </p>
+        <div class="landing-cta">
+          <span class="np-logged-out">
+            <a class="btn btn-primary" href="/registro.html">Crear cuenta gratis →</a>
+            <a class="btn btn-ghost" href="/login.html">Ya tengo cuenta</a>
+          </span><span class="np-logged-in" style="display:none">
+            <a class="btn btn-primary" href="/dashboard.html">Ir a mi dashboard →</a>
+          </span>
+        </div>
+      </div>
+
+      <div class="statement-wrap">
+        <span class="statement-stamp">✓ conciliado</span>
+        <div class="statement-card">
+          <div class="statement-head">
+            <span class="statement-head-title">Extracto · Nómina Personal</span>
+            <span class="statement-head-period">Ago 2026</span>
+          </div>
+          <div class="statement-account">Cuenta Nu •••• 4471 &nbsp;·&nbsp; Efectivo &nbsp;·&nbsp; Ualá</div>
+          <div class="statement-rows">
+            <div class="statement-row">
+              <span><span class="srow-code">01</span>Pago nómina</span>
+              <span class="srow-val plus">+$3.200.000</span>
+            </div>
+            <div class="statement-row">
+              <span><span class="srow-code">02</span>Arriendo</span>
+              <span class="srow-val minus">−$1.100.000</span>
+            </div>
+            <div class="statement-row">
+              <span><span class="srow-code">03</span>Mercado</span>
+              <span class="srow-val minus">−$480.500</span>
+            </div>
+            <div class="statement-row">
+              <span><span class="srow-code">04</span>Meta "Viaje" ✈</span>
+              <span class="srow-val minus">−$300.000</span>
+            </div>
+            <div class="statement-row alert">
+              <span>⏰ Internet vence en 3 días</span>
+            </div>
+          </div>
+          <div class="statement-total">
+            <span class="statement-total-label">Saldo disponible</span>
+            <span class="statement-total-val">$1.319.500</span>
+          </div>
+        </div>
+        <div class="statement-tear"></div>
+      </div>
+    </header>
+  </div>
+
+  <section class="landing-pillars">
+    <div>
+      <div class="landing-eyebrow">Un solo libro para toda tu plata</div>
+      <h2>Un gestor hecho para que dejes de improvisar con tus finanzas.</h2>
+      <p>
+        <strong>Nómina Personal</strong> nace de una necesidad muy simple: dejar de perder el rastro
+        del dinero entre notas del celular, mensajes y hojas de cálculo a medio llenar. Se creó
+        para darte, en un solo lugar, el control real de tus cuentas, tus gastos, tus deudas y
+        tus metas de ahorro.
+      </p>
+      <p>
+        El fin del software es reducirte la fricción de llevar tus finanzas al día a día: registrar
+        un movimiento, ver a dónde se va tu plata cada mes y que nunca se te pase la fecha de un
+        pago, sin depender de recordar nada de memoria — la app y el bot lo hacen por ti.
+      </p>
+    </div>
+    <div class="landing-pillars-art">
+      <div class="ledger-stack">
+        <div class="ledger-tab" style="--tab-color:var(--accent)">
+          <span class="ledger-tab-code">CTA</span>
+          <div><div class="ledger-tab-name">Cuentas</div><div class="ledger-tab-desc">Saldos reales, en un vistazo</div></div>
+        </div>
+        <div class="ledger-tab" style="--tab-color:var(--gold)">
+          <span class="ledger-tab-code">CAT</span>
+          <div><div class="ledger-tab-name">Categorías</div><div class="ledger-tab-desc">A dónde se va cada peso</div></div>
+        </div>
+        <div class="ledger-tab" style="--tab-color:var(--coral)">
+          <span class="ledger-tab-code">DEU</span>
+          <div><div class="ledger-tab-name">Deudas</div><div class="ledger-tab-desc">Lo que debes y lo que te deben</div></div>
+        </div>
+        <div class="ledger-tab" style="--tab-color:#6C8CFF">
+          <span class="ledger-tab-code">MET</span>
+          <div><div class="ledger-tab-name">Metas</div><div class="ledger-tab-desc">Ahorro con fecha y avance</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section">
+    <div class="landing-section-head">
+      <div>
+        <h2>Todo lo que necesitas para no perder el control</h2>
+        <p class="lead">Una sola app para cuentas, categorías, movimientos y pagos — con gráficas y exportes cuando los necesites.</p>
+      </div>
+    </div>
+    <div class="landing-grid">
+      <div class="landing-feature" style="--f-color:var(--accent)">
+        <span class="landing-feature-tag">CTA</span>
+        <h3>Cuentas y saldos reales</h3>
+        <p>Nu, Ualá, efectivo o la que uses: el saldo se calcula solo según tus movimientos, y lo puedes ajustar cuando no cuadre.</p>
+      </div>
+      <div class="landing-feature" style="--f-color:var(--gold)">
+        <span class="landing-feature-tag">CAT</span>
+        <h3>Categorías a tu manera</h3>
+        <p>Clasifica gastos e ingresos con ícono y color propio, y arma presupuestos por categoría.</p>
+      </div>
+      <div class="landing-feature" style="--f-color:var(--warn)">
+        <span class="landing-feature-tag">PAG</span>
+        <h3>Pagos pendientes con aviso</h3>
+        <p>Programa pagos únicos o recurrentes. Te avisamos en el dashboard y por Telegram antes de que venzan.</p>
+      </div>
+      <div class="landing-feature" style="--f-color:#6C8CFF">
+        <span class="landing-feature-tag">DASH</span>
+        <h3>Dashboard con gráficas</h3>
+        <p>Gasto por categoría y por cuenta, proyección de saldo a fin de mes, todo mes a mes.</p>
+      </div>
+      <div class="landing-feature" style="--f-color:var(--coral)">
+        <span class="landing-feature-tag">COMP</span>
+        <h3>Gastos compartidos</h3>
+        <p>Divide un gasto entre varias personas y lleva el control de quién ya pagó su parte.</p>
+      </div>
+      <div class="landing-feature" style="--f-color:var(--danger)">
+        <span class="landing-feature-tag">BOT</span>
+        <h3>Bot de Telegram</h3>
+        <p>Consulta tu saldo, registra un gasto o ingreso y revisa tus últimos movimientos sin abrir el navegador.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-bot-band">
+    <div class="landing-bot-card">
+      <div>
+        <div class="landing-bot-eyebrow">🤖 Nuestro bot de Telegram</div>
+        <h2>Conoce a @NexosasBot, tu asistente financiero de bolsillo.</h2>
+        <p>
+          Además de la app web, tenemos un bot propio que vive en tu Telegram y te acompaña todo
+          el día: le hablas y él lleva las cuentas por ti. Rápido, directo, sin abrir el navegador —
+          perfecto para registrar algo al vuelo, desde el bus o en medio de una compra.
+        </p>
+        <ul class="landing-bot-list">
+          <li>Registra gastos e ingresos escribiéndole como a un contacto más</li>
+          <li>Consulta tu saldo y tus últimos movimientos al instante</li>
+          <li>Te avisa antes de que venza un pago pendiente</li>
+          <li>Se conecta directo a tu cuenta, todo queda sincronizado</li>
+        </ul>
+      </div>
+      <div class="chat-mock">
+        <div class="chat-mock-head">
+          <span class="chat-mock-dot"></span>
+          <span class="chat-mock-handle">@NexosasBot</span>
+        </div>
+        <div class="chat-mock-body">
+          <div class="chat-bubble in">gasto 45000 mercado</div>
+          <div class="chat-bubble out">✅ Registrado −$45.000 en Mercado (Efectivo). Saldo: $1.319.500</div>
+          <div class="chat-bubble in">saldo</div>
+          <div class="chat-bubble out">💰 Saldo total: $1.319.500 en 3 cuentas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-band">
+    <div class="landing-band-folio">Folio de apertura · toma menos de 1 minuto</div>
+    <h2>Empieza a organizar tu plata hoy</h2>
+    <p>Tus datos son privados: solo tú los ves.</p>
+    <span class="np-logged-out">
+      <a class="btn btn-primary" href="/registro.html">Crear cuenta gratis →</a>
+    </span><span class="np-logged-in" style="display:none">
+      <a class="btn btn-primary" href="/dashboard.html">Ir a mi dashboard →</a>
+    </span>
+  </section>
+
+  <footer class="landing-footer">
+    Nómina Personal — proyecto de gestión de finanzas personales. <span>@NexosasBot en Telegram</span>
+  </footer>
+
+</div>
+
+<script>
+  if (localStorage.getItem("np_token")) {
+    document.querySelectorAll(".np-logged-out").forEach(el => el.style.display = "none");
+    document.querySelectorAll(".np-logged-in").forEach(el => el.style.display = "");
+  }
+
+  // Splash de arranque: se muestra al entrar a la app y se oculta solo,
+  // dando la sensación de que el software "abre" con su logo.
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      document.getElementById("splash").classList.add("splash-hide");
+    }, 900);
+  });
+</script>
+</body>
+</html>

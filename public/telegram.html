@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Telegram — Nómina Personal</title>
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/img/logo-icon.png" alt="Nómina Personal" class="brand-mark-img">
+        <div>
+          <div class="brand-name">Nómina Personal</div>
+          <div class="brand-sub">gestor personal</div>
+        </div>
+      </div>
+      <nav class="nav">
+      <a class="nav-item" href="/dashboard.html"><span class="nav-icon">▤</span> Dashboard</a>
+      <a class="nav-item" href="/movimientos.html"><span class="nav-icon">≡</span> Movimientos</a>
+      <a class="nav-item" href="/categorias.html"><span class="nav-icon">◆</span> Categorías</a>
+      <a class="nav-item" href="/presupuestos.html"><span class="nav-icon">▦</span> Presupuestos</a>
+      <a class="nav-item" href="/metas.html"><span class="nav-icon">◎</span> Metas</a>
+      <a class="nav-item" href="/deudas.html"><span class="nav-icon">▼</span> Deudas</a>
+      <a class="nav-item" href="/pagos.html"><span class="nav-icon">◷</span> Pagos</a>
+      <a class="nav-item active" href="/telegram.html"><span class="nav-icon">✈</span> Telegram</a>
+      <a class="nav-item nav-item-bot" href="https://t.me/NexosasBot" target="_blank" rel="noopener"><span class="nav-icon">🤖</span> @NexosasBot <span class="badge-new">Chatea</span></a>
+      <a class="nav-item" href="/cambiar_password.html"><span class="nav-icon">⚙</span> Mi cuenta</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <span class="user-name js-username"></span>
+          <a href="#" class="user-logout" id="btn-logout">Cerrar sesión</a>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Integración</div>
+          <h1>Vincular con Telegram</h1>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div id="contenido">Cargando...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    async function render() {
+      const data = await apiFetch("/api/telegram");
+      const el = document.getElementById("contenido");
+
+      if (data.vinculado) {
+        el.innerHTML = `
+          <p>✅ Vinculado como <strong>@${data.telegram_username || "usuario de Telegram"}</strong> desde ${data.vinculado_en?.slice(0,10) || ""}.</p>
+          <p class="empty-hint">Ya puedes usar <code>/saldo</code>, <code>/gasto</code>, <code>/ingreso</code> y <code>/movimientos</code> en el bot.</p>
+          <button id="btn-desvincular" class="btn btn-ghost btn-sm">Desvincular</button>
+        `;
+        document.getElementById("btn-desvincular").addEventListener("click", async () => {
+          if (!confirm("¿Desvincular este chat de Telegram?")) return;
+          await apiFetch("/api/telegram", { method: "DELETE" });
+          render();
+        });
+        return;
+      }
+
+      if (data.codigo) {
+        el.innerHTML = `
+          <p>Tu código: <strong style="font-size:1.5em; font-family:var(--font-mono); color:var(--accent);">${data.codigo}</strong></p>
+          <p class="empty-hint">Válido por 10 minutos. Envíale este mensaje al bot en Telegram:</p>
+          <p style="font-family:var(--font-mono); background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:inline-block;">/vincular ${data.codigo}</p>
+          <br><br>
+          <button id="btn-nuevo" class="btn btn-primary btn-sm">Generar código nuevo</button>
+        `;
+      } else {
+        el.innerHTML = `
+          <p class="empty-hint">Todavía no has vinculado tu cuenta con el bot de Telegram.</p>
+          <button id="btn-nuevo" class="btn btn-primary btn-sm">Generar código de vinculación</button>
+        `;
+      }
+      document.getElementById("btn-nuevo").addEventListener("click", async () => {
+        await apiFetch("/api/telegram", { method: "POST" });
+        render();
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
