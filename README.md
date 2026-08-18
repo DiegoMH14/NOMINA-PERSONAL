@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="public/img/logo.png" alt="Nómina Personal" width="220">
-
 # Nómina Personal
 
 **Gestor de finanzas personales con app web y bot de Telegram**
